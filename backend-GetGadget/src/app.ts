@@ -1,5 +1,7 @@
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { FRONTEND_URL } from "./config";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/admin/user.route";
@@ -14,11 +16,34 @@ import paymentRoutes from "./routes/payment.route";
 
 const app: Application = express();
 
-/*
-=================================================
-CORS CONFIG
-=================================================
-*/
+// Security headers
+app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  })
+);
+
+// General rate limiter: 100 requests per 15 minutes
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(generalLimiter);
+
+// CORS config
 const corsOptions = {
   origin: FRONTEND_URL,
   optionsSuccessStatus: 200,
