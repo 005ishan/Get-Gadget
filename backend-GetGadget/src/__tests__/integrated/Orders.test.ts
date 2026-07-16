@@ -75,6 +75,7 @@ beforeAll(async () => {
       productName: `${TAG}Wireless Earbuds`,
       quantity: 1,
       price: 94.99,
+      size: "M",
     }],
     totalAmount: 94.99,
     status: "pending",
@@ -104,7 +105,7 @@ describe("POST /api/orders — Create Order", () => {
       .send({
         userId,
         transactionId: txnId,
-        items: [{ productId, productName: `${TAG}Wireless Earbuds`, quantity: 2, price: 94.99 }],
+        items: [{ productId, productName: `${TAG}Wireless Earbuds`, quantity: 2, price: 94.99, size: "M" }],
         totalAmount: 189.98,
       });
     expect(res.status).toBe(201);
@@ -122,7 +123,7 @@ describe("POST /api/orders — Create Order", () => {
       .send({
         userId,
         transactionId: txnId,
-        items: [{ productId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99 }],
+        items: [{ productId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99, size: "M" }],
         totalAmount: 94.99,
         status: "delivered", // should be ignored
       });
@@ -148,7 +149,7 @@ describe("POST /api/orders — Create Order", () => {
       .send({
         userId,
         transactionId: txnId,
-        items: [{ productId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99 }],
+        items: [{ productId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99, size: "M" }],
         totalAmount: 94.99,
       });
     expect(res.status).toBe(201);
@@ -225,7 +226,7 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     const order = await OrderModel.create({
       userId: userObjectId,
       transactionId: `${TAG}txn_tc09`,
-      items: [{ productId: productObjectId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99 }],
+      items: [{ productId: productObjectId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99, size: "M" }],
       totalAmount: 94.99,
       status: "pending",
     });
@@ -243,7 +244,7 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     const order = await OrderModel.create({
       userId: userObjectId,
       transactionId: `${TAG}txn_tc10`,
-      items: [{ productId: productObjectId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99 }],
+      items: [{ productId: productObjectId, productName: `${TAG}Wireless Earbuds`, quantity: 1, price: 94.99, size: "M" }],
       totalAmount: 94.99,
       status: "processing",
     });
