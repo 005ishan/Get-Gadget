@@ -1,0 +1,18 @@
+{
+  "name": "getgadget-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GetGadget - Premium gadget accessories ecommerce platform",
+  "scripts": {
+    "install:all": "cd backend-GetGadget && npm install && cd ../nextjs-GetGadget && npm install",
+    "dev:backend": "cd backend-GetGadget && npm run dev",
+    "dev:frontend": "cd nextjs-GetGadget && npm run dev",
+    "dev": "concurrently -n BE,FE -c cyan,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "cd nextjs-GetGadget && npm run build",
+    "test:backend": "cd backend-GetGadget && npm test",
+    "test:frontend": "cd nextjs-GetGadget && npm run test:unit"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

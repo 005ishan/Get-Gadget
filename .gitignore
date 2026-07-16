@@ -1,0 +1,145 @@
+# ═══════════════════════════════════════════════════
+#  ENVIRONMENT & SECRETS (NEVER COMMIT THESE!)
+# ═══════════════════════════════════════════════════
+
+# Backend environment variables
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Frontend environment variables
+nextjs-GetGadget/.env
+nextjs-GetGadget/.env.*
+nextjs-GetGadget/.env.local
+nextjs-GetGadget/.env.development
+nextjs-GetGadget/.env.production
+nextjs-GetGadget/.env.test
+
+# Backend environment
+backend-GetGadget/.env
+backend-GetGadget/.env.*
+backend-GetGadget/.env.local
+backend-GetGadget/.env.development
+backend-GetGadget/.env.production
+
+# ═══════════════════════════════════════════════════
+#  DEPENDENCIES
+# ═══════════════════════════════════════════════════
+
+node_modules/
+backend-GetGadget/node_modules/
+nextjs-GetGadget/node_modules/
+
+# ═══════════════════════════════════════════════════
+#  BUILD OUTPUTS
+# ═══════════════════════════════════════════════════
+
+# Next.js build
+nextjs-GetGadget/.next/
+nextjs-GetGadget/out/
+
+# TypeScript build output
+backend-GetGadget/dist/
+backend-GetGadget/build/
+
+# ═══════════════════════════════════════════════════
+#  AUTO-GENERATED FILES
+# ═══════════════════════════════════════════════════
+
+nextjs-GetGadget/next-env.d.ts
+
+# ═══════════════════════════════════════════════════
+#  TEST COVERAGE REPORTS
+# ═══════════════════════════════════════════════════
+
+coverage/
+backend-GetGadget/coverage/
+nextjs-GetGadget/coverage/
+.nyc_output/
+
+# ═══════════════════════════════════════════════════
+#  LOGS & DEBUG FILES
+# ═══════════════════════════════════════════════════
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ═══════════════════════════════════════════════════
+#  OPERATING SYSTEM FILES
+# ═══════════════════════════════════════════════════
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ═══════════════════════════════════════════════════
+#  IDE & EDITOR FILES
+# ═══════════════════════════════════════════════════
+
+# VS Code (optional — uncomment if you want to ignore)
+# .vscode/
+# .vscode/settings.json
+# .vscode/launch.json
+
+# JetBrains (WebStorm, IntelliJ)
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim/Neovim
+*.swp
+*.swo
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elisp-autofrly
+
+# ═══════════════════════════════════════════════════
+#  RAW ASSET SOURCES (Not used in production)
+# ═══════════════════════════════════════════════════
+
+accessories_images/
+
+# ═══════════════════════════════════════════════════
+#  DOCKER / CONTAINER ARTIFACTS
+# ═══════════════════════════════════════════════════
+
+docker-compose.override.yml
+
+# ═══════════════════════════════════════════════════
+#  MISCELLANEOUS
+# ═══════════════════════════════════════════════════
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Python / virtual env (if any)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Systemd units or local config
+*.service
+*.socket
