@@ -20,6 +20,7 @@ export const userSchema = z.object({
   email: z.email(),
   password: z.string().min(8),
   role: z.enum(["user", "admin"]).default("user"),
+  passwordChangedAt: z.date().optional(),
   favourites: z.array(favouriteItemSchema).default([]),
   cart: z.array(cartItemSchema).default([]),
 });

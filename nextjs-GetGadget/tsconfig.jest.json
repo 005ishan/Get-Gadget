@@ -5,6 +5,7 @@
     "esModuleInterop": true,
     "module": "CommonJS",
     "moduleResolution": "node",
+    "ignoreDeprecations": "5.0",
     "types": ["jest", "@testing-library/jest-dom", "node"],
     "paths": {
       "@/*": ["./*"]
