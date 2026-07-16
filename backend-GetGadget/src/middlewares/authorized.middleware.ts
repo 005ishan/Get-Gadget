@@ -22,16 +22,33 @@ export const authorizedMiddleware = async (
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer "))
       throw new HttpError(401, "Unauthorized JWT invalid");
-    // JWT token should start with "Bearer <token>"
-    const token = authHeader.split(" ")[1]; // 0 -> Bearer, 1 -> token
+
+    const token = authHeader.split(" ")[1];
     if (!token) throw new HttpError(401, "Unauthorized JWT missing");
+
+    // Check if token is blacklisted (revoked on logout)
+    const isBlacklisted = await BlacklistModel.findOne({ token: token });
+    if (isBlacklisted) {
+      throw new HttpError(401, "Token has been revoked");
+    }
+
     const decodedToken = jwt.verify(token, JWT_SECRET) as Record<string, any>;
     if (!decodedToken || !decodedToken._id) {
       throw new HttpError(401, "Unauthorized JWT unverified");
-    } // make function async
+    }
+
     const user = await userRepository.getUserById(decodedToken._id);
     if (!user) throw new HttpError(401, "Unauthorized user not found");
-    req.user = user; // attach user to request (like tag)
+
+    // Invalidate tokens issued before password was changed
+    if (user.passwordChangedAt && decodedToken.iat) {
+      const changedAt = Math.floor(user.passwordChangedAt.getTime() / 1000);
+      if (changedAt > decodedToken.iat) {
+        throw new HttpError(401, "Token expired, please login again");
+      }
+    }
+
+    req.user = user;
     next();
   } catch (err: Error | any) {
     return res
