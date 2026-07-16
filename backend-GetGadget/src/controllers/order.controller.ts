@@ -2,10 +2,19 @@ import { Request, Response } from "express";
 import { OrderModel } from "../models/order.model";
 
 export class OrderController {
-  // GET /api/orders — customer gets their own orders
+  // GET /api/orders/:userId — customer gets their own orders with ownership check
   getUserOrders = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
+
+      // Ownership check: users can only view their own orders
+      const requestingUser = (req as any).user;
+      if (requestingUser && requestingUser._id.toString() !== userId) {
+        return res.status(403).json({
+          message: "Access denied: you can only view your own orders"
+        });
+      }
+
       const orders = await OrderModel.find({ userId }).sort({ createdAt: -1 });
       res.json(orders);
     } catch (err) {
@@ -25,7 +34,7 @@ export class OrderController {
     }
   };
 
-  // PATCH /api/admin/orders/:id/status — admin updates status
+  // PATCH /api/admin/orders/:id/status — admin updates order status
   updateStatus = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -75,7 +84,6 @@ export class OrderController {
         return res.status(400).json({ message: "No transactions provided" });
       }
 
-      // Get existing order transactionIds to avoid duplicates
       const existingOrders = await OrderModel.find({}).select("transactionId");
       const existingTxIds = new Set(existingOrders.map((o) => o.transactionId));
 
