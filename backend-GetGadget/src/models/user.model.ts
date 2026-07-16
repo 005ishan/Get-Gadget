@@ -21,6 +21,7 @@ const userSchema: Schema = new Schema<userType>(
       enum: ["user", "admin"],
       default: "user",
     },
+    passwordChangedAt: { type: Date, default: Date.now },
     favourites: [favouriteSchema],
     cart: [cartSchema],
   },
