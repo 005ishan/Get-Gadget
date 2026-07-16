@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { IUser } from "../models/user.model";
 import { UserRepository } from "../repositories/user.repository";
 import { HttpError } from "../errors/http-error";
+import { BlacklistModel } from "../models/blacklist.model";
 
 declare global {
   namespace Express {
@@ -11,8 +12,10 @@ declare global {
       user?: Record<string, any> | IUser;
     }
   }
-} // adding tag (user) to request, can use req.user
+}
+
 let userRepository = new UserRepository();
+
 export const authorizedMiddleware = async (
   req: Request,
   res: Response,
