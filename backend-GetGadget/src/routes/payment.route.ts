@@ -6,10 +6,10 @@ import rateLimit from "express-rate-limit";
 
 const router = Router();
 
-// Rate limiter: 20 payment attempts per 15 minutes
+// Rate limiter: 20 payment attempts per 15 minutes (skip in test)
 const paymentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === "test" ? 100 : 20,
   message: {
     success: false,
     message: "Too many payment attempts, please try again later",
