@@ -169,7 +169,9 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
       .set("Authorization", `Bearer ${userToken}`)
       .send({ productId, quantity: 1 });
 
-    const res = await request(app).get(`/api/users/${userId}/cart`);
+    const res = await request(app)
+      .get(`/api/users/${userId}/cart`)
+      .set("Authorization", `Bearer ${userToken}`);
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
@@ -177,7 +179,9 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
 
   // TC-CART-07
   it("TC-CART-07: GET cart returns empty array when cart is empty", async () => {
-    const res = await request(app).get(`/api/users/${userId}/cart`);
+    const res = await request(app)
+      .get(`/api/users/${userId}/cart`)
+      .set("Authorization", `Bearer ${userToken}`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
@@ -191,6 +195,7 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
 
     const res = await request(app)
       .put(`/api/users/${userId}/cart`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId, quantity: 10 });
 
     expect(res.status).toBe(200);
@@ -214,6 +219,7 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
 
     const res = await request(app)
       .delete(`/api/users/${userId}/cart`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
 
     expect(res.status).toBe(200);
@@ -259,6 +265,7 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
   it("TC-FAV-01: POST toggle adds product to favourites", async () => {
     const res = await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -270,10 +277,12 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
   it("TC-FAV-02: POST toggle again removes product from favourites", async () => {
     await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
 
     const res = await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
 
     expect(res.status).toBe(200);
@@ -285,9 +294,11 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
   it("TC-FAV-03: favourites list is empty in DB after toggling off", async () => {
     await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
     await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
 
     const user = await UserModel.findById(userId);
@@ -298,9 +309,11 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
   it("TC-FAV-04: multiple products can be added to favourites independently", async () => {
     await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId });
     await request(app)
       .post(`/api/users/${userId}/favourite`)
+      .set("Authorization", `Bearer ${userToken}`)
       .send({ productId: productId2 });
 
     const user = await UserModel.findById(userId);

@@ -58,12 +58,12 @@ afterAll(async () => {
 // CREATE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-describe("POST /admin/products — Create Product", () => {
+describe("POST /api/admin/products — Create Product", () => {
   // TC-PROD-01
   it("TC-PROD-01: admin creates a product and returns 201 with product data", async () => {
     const name = `${TAG}Bluetooth Speaker`;
     const res = await request(app)
-      .post("/admin/products")
+      .post("/api/admin/products")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name, price: 74.99, category: "audio" });
     expect(res.status).toBe(201);
@@ -75,7 +75,7 @@ describe("POST /admin/products — Create Product", () => {
   // TC-PROD-02
   it("TC-PROD-02: returns 500 when product name is missing (required field)", async () => {
     const res = await request(app)
-      .post("/admin/products")
+      .post("/api/admin/products")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ price: 50, category: "audio" });
     expect(res.status).toBe(500);
@@ -85,7 +85,7 @@ describe("POST /admin/products — Create Product", () => {
   // TC-PROD-03
   it("TC-PROD-03: returns 500 when category is an invalid enum value", async () => {
     const res = await request(app)
-      .post("/admin/products")
+      .post("/api/admin/products")
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ name: `${TAG}Bad Category Product`, price: 60, category: "invalid" });
     expect(res.status).toBe(500);
@@ -101,7 +101,7 @@ describe("GET /admin/products — Retrieve Products", () => {
   // TC-PROD-04
   it("TC-PROD-04: retrieves all products and returns a non-empty array", async () => {
     const res = await request(app)
-      .get("/admin/products")
+      .get("/api/admin/products")
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
@@ -112,7 +112,7 @@ describe("GET /admin/products — Retrieve Products", () => {
   // TC-PROD-05
   it("TC-PROD-05: filters by category=audio and only returns audio products", async () => {
     const res = await request(app)
-      .get("/admin/products?category=audio")
+      .get("/api/admin/products?category=audio")
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     res.body.data.forEach((p: any) => expect(p.category).toBe("audio"));
@@ -126,7 +126,7 @@ describe("GET /admin/products — Retrieve Products", () => {
       category: "accessories",
     });
     const res = await request(app)
-      .get("/admin/products?category=accessories")
+      .get("/api/admin/products?category=accessories")
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     res.body.data.forEach((p: any) => expect(p.category).toBe("accessories"));
@@ -136,7 +136,7 @@ describe("GET /admin/products — Retrieve Products", () => {
   // TC-PROD-07
   it("TC-PROD-07: retrieves a single product by ID", async () => {
     const res = await request(app)
-      .get(`/admin/products/${seededProductId}`)
+      .get(`/api/admin/products/${seededProductId}`)
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.body.data._id).toBe(seededProductId);
@@ -146,7 +146,7 @@ describe("GET /admin/products — Retrieve Products", () => {
   it("TC-PROD-08: returns 404 for a non-existent product ID", async () => {
     const fakeId = new mongoose.Types.ObjectId().toString();
     const res = await request(app)
-      .get(`/admin/products/${fakeId}`)
+      .get(`/api/admin/products/${fakeId}`)
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);
@@ -166,7 +166,7 @@ describe("PUT & DELETE /admin/products/:id", () => {
       category: "audio",
     });
     const res = await request(app)
-      .put(`/admin/products/${tmp._id}`)
+      .put(`/api/admin/products/${tmp._id}`)
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ price: 99.99 });
     expect(res.status).toBe(200);
@@ -183,7 +183,7 @@ describe("PUT & DELETE /admin/products/:id", () => {
       category: "accessories",
     });
     const res = await request(app)
-      .delete(`/admin/products/${tmp._id}`)
+      .delete(`/api/admin/products/${tmp._id}`)
       .set("Authorization", `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
