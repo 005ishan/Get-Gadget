@@ -52,27 +52,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-/*
-=================================================
-BODY PARSER (IMPORTANT)
-Use Express built-in parser
-=================================================
-*/
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/*
-=================================================
-STATIC FILES
-=================================================
-*/
+// Static files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-/*
-=================================================
-ROUTES
-=================================================
-*/
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/users", userRoutes);
 app.use("/api/users", userRoutess);
@@ -82,11 +69,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/payment", paymentRoutes);
 
-/*
-=================================================
-ROOT TEST ROUTES
-=================================================
-*/
+// Root test routes
 app.get("/", (req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
@@ -102,11 +85,7 @@ app.get("/api", (req: Request, res: Response) => {
   });
 });
 
-/*
-=================================================
-GLOBAL ERROR HANDLER
-=================================================
-*/
+// Global error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof HttpError) {
     return res.status(err.statusCode).json({
