@@ -2,8 +2,23 @@
 import { Router, Request, Response } from "express";
 import axios from "axios";
 import crypto from "crypto";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+// Rate limiter: 20 payment attempts per 15 minutes
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    message: "Too many payment attempts, please try again later",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.use(paymentLimiter);
 
 // ─── eSewa: generate signature (called by frontend via API) ───────────────────
 // eSewa v2 requires HMAC-SHA256 signature generated server-side
