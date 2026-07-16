@@ -20,10 +20,13 @@
       register,
       handleSubmit,
       reset,
+      watch,
       formState: { errors, isSubmitting },
     } = useForm<RegisterData>({
       resolver: zodResolver(registerSchema),
     });
+
+    const watchPassword = watch("password", "");
 
     const onSubmit = async (values: RegisterData) => {
       setServerError(null);
@@ -52,6 +55,23 @@
     };
 
     const loading = isSubmitting || pending;
+
+    // Password strength visual indicator (6 criteria: length, uppercase, lowercase, number, special, 12+ chars)
+    const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
+      if (!pwd) return { score: 0, label: "", color: "bg-gray-200" };
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[a-z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+      if (pwd.length >= 12) score++;
+      const labels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong", "Excellent"];
+      const colors = ["bg-gray-200", "bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-lime-400", "bg-green-400", "bg-emerald-500"];
+      return { score, label: labels[score], color: colors[score] };
+    };
+
+    const strength = getPasswordStrength(watchPassword);
 
     return (
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -102,6 +122,26 @@
           </div>
           {errors.password?.message && (
             <p className="text-xs text-red-500">{errors.password.message}</p>
+          )}
+          {/* Password Strength Bar */}
+          {watchPassword && (
+            <div className="space-y-1">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5, 6].map((level) => (
+                  <div
+                    key={level}
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
+                      level <= strength.score ? strength.color : "bg-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              {strength.label && (
+                <p className="text-xs text-gray-500">
+                  Strength: <span className="font-medium">{strength.label}</span>
+                </p>
+              )}
+            </div>
           )}
         </div>
 
