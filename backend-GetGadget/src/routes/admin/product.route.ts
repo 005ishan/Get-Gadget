@@ -2,11 +2,26 @@ import { Router } from "express";
 import { ProductController } from "../../controllers/admin/product.controller";
 import { uploads } from "../../middlewares/upload.middleware";
 import { Product } from "../../models/product.model";
+import rateLimit from "express-rate-limit";
+import {
+  adminMiddleware,
+  authorizedMiddleware,
+} from "../../middlewares/authorized.middleware";
 
 const router = Router();
 const controller = new ProductController();
 
-router.get("/search", async (req, res) => {
+// Rate limiter for public search (prevent regex abuse)
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: "Too many search requests" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Backfill and search routes — allowed before auth (public data)
+router.get("/search", searchLimiter, async (req, res) => {
   try {
     const query = req.query.query?.toString() || "";
 
@@ -25,6 +40,10 @@ router.get("/search", async (req, res) => {
   }
 });
 router.get("/category", controller.getByCategory);
+
+// Admin-only routes (require JWT auth + admin role)
+router.use(authorizedMiddleware);
+router.use(adminMiddleware);
 
 router.post("/", uploads.single("image"), controller.create);
 router.get("/", controller.getAll);
