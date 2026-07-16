@@ -1,15 +1,28 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { AuthController } from "../controllers/auth.controller";
 import { authorizedMiddleware } from "../middlewares/authorized.middleware";
 
 let authController = new AuthController();
 const router = Router();
 
-router.post("/register", authController.register);
-router.post("/login", authController.login);
+// Rate limit: 10 attempts per 15 minutes on auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    message: "Too many attempts, please try again later",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post("/register", authLimiter, authController.register);
+router.post("/login", authLimiter, authController.login);
 router.post("/logout", authorizedMiddleware, authController.logout);
 
-router.post("/request-password-reset", authController.requestPasswordReset);
-router.post("/reset-password/:token", authController.resetPassword);
+router.post("/request-password-reset", authLimiter, authController.requestPasswordReset);
+router.post("/reset-password/:token", authLimiter, authController.resetPassword);
 
 export default router;
