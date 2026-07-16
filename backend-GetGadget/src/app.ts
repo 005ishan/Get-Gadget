@@ -45,6 +45,17 @@ const generalLimiter = rateLimit({
 
 app.use(generalLimiter);
 
+// Response timeout (30s for regular, 60s for uploads)
+app.use((req, res, next) => {
+  const timeout = req.path.startsWith("/api/admin/products") ? 60000 : 30000;
+  req.setTimeout(timeout, () => {
+    if (!res.headersSent) {
+      res.status(408).json({ success: false, message: "Request timeout" });
+    }
+  });
+  next();
+});
+
 // CORS config
 const corsOptions = {
   origin: FRONTEND_URL,
