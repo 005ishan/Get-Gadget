@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: getgadget-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: getgadget
+
+  backend:
+    build:
+      context: ./backend-GetGadget
+      dockerfile: Dockerfile
+    container_name: getgadget-backend
+    restart: unless-stopped
+    ports:
+      - "5050:5050"
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - PORT=5050
+      - MONGODB_URI=mongodb://mongodb:27017/getgadget
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
+    volumes:
+      - backend_uploads:/app/uploads
+
+volumes:
+  mongo_data:
+  backend_uploads:
