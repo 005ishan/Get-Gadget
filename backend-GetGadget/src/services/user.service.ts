@@ -20,7 +20,7 @@ export class UserService {
       throw new HttpError(403, "Email already in use");
     }
 
-    // hash password
+    // Hash password with bcrypt
     const hashedPassword = await bcryptjs.hash(data.password, 10);
 
     const userData: Partial<IUser> = {
@@ -38,20 +38,18 @@ export class UserService {
     if (!user) {
       throw new HttpError(404, "User not found");
     }
-    // compare password
+    // Compare plaintext password against stored hash
     const validPassword = await bcryptjs.compare(data.password, user.password);
-    // plaintext, hashed
     if (!validPassword) {
       throw new HttpError(401, "Invalid credentials");
     }
-    // generate jwt
+    // Generate JWT
     const payload = {
-      // user identifier
       id: user._id,
       email: user.email,
       role: user.role,
     };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" }); // 30 days
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
     return { token, user };
   }
 
@@ -108,6 +106,7 @@ export class UserService {
       );
     }
   }
+
   async updateUser(id: string, data: Partial<createUserDTO>) {
     try {
       if (!id) throw new HttpError(400, "User ID is required");
@@ -121,15 +120,19 @@ export class UserService {
         if (emailCheck) throw new HttpError(403, "Email already in use");
       }
 
-      // Map DTO to IUser-compatible object
       const updateData: Partial<IUser> = {
         email: data.email,
         role: data.role ?? user.role,
       };
 
-      // Hash password if provided
+      // Hash password with reuse prevention
       if (data.password) {
+        const isSameAsOld = await bcryptjs.compare(data.password, user.password);
+        if (isSameAsOld) {
+          throw new HttpError(400, "Cannot reuse your current password");
+        }
         updateData.password = await bcryptjs.hash(data.password, 10);
+        updateData.passwordChangedAt = new Date();
       }
 
       const updatedUser = await userRepository.updateUser(id, updateData);
@@ -141,6 +144,7 @@ export class UserService {
       );
     }
   }
+
   async resetPassword(token?: string, newPassword?: string) {
     try {
       if (!token || !newPassword) {
@@ -152,13 +156,24 @@ export class UserService {
       if (!user) {
         throw new HttpError(404, "User not found");
       }
+
+      // Check password reuse
+      const isSameAsOld = await bcryptjs.compare(newPassword, user.password);
+      if (isSameAsOld) {
+        throw new HttpError(400, "Cannot reuse your current password");
+      }
+
       const hashedPassword = await bcryptjs.hash(newPassword, 10);
-      await userRepository.updateUser(userId, { password: hashedPassword });
+      await userRepository.updateUser(userId, {
+        password: hashedPassword,
+        passwordChangedAt: new Date(),
+      });
       return user;
     } catch (error) {
       throw new HttpError(400, "Invalid or expired token");
     }
   }
+
   async sendResetPasswordEmail(email?: string) {
     if (!email) {
       throw new HttpError(400, "Email is required");
@@ -167,12 +182,14 @@ export class UserService {
     if (!user) {
       throw new HttpError(404, "User not found");
     }
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiry
+    // 1 hour expiry for reset tokens
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
     const resetLink = `${CLIENT_URL}/reset-password?token=${token}`;
     const html = `<p>Click <a href="${resetLink}">here</a> to reset your password. This link will expire in 1 hour.</p>`;
     await sendEmail(user.email, "Password Reset", html);
     return user;
   }
+
   async toggleFavourite(userId: string, productId: string) {
     try {
       if (!userId || !productId) {
@@ -212,6 +229,7 @@ export class UserService {
       );
     }
   }
+
   async updateCartItem(
     userId: string,
     productId: string,
