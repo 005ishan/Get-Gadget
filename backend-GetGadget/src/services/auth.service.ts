@@ -15,11 +15,14 @@ export class AuthService {
       throw new HttpError(409, "Email already in use");
     }
 
-    // Hash password
+    // Hash password with bcrypt (salt rounds = 10)
     const hashedPassword = await bcryptjs.hash(data.password, 10);
     data.password = hashedPassword;
 
-    const newUser = await userRepository.createUser(data);
+    const newUser = await userRepository.createUser({
+      ...data,
+      passwordChangedAt: new Date(),
+    });
 
     // Remove password before returning
     const { password, ...safeUser } = newUser.toObject
@@ -46,13 +49,14 @@ export class AuthService {
     }
 
     const payload = {
-      _id: user._id, // IMPORTANT: matches req.user._id
+      _id: user._id,
       email: user.email,
       role: user.role,
+      iat: Math.floor(Date.now() / 1000),
     };
 
     const token = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "30d",
+      expiresIn: "24h",
     });
 
     // Remove password before returning user
@@ -77,6 +81,19 @@ export class AuthService {
   }
 
   async updateUser(userId: string, data: Partial<any>) {
+    // If updating password, check reuse, hash it, update passwordChangedAt
+    if (data.password) {
+      const user = await userRepository.getUserById(userId);
+      if (user) {
+        const isSameAsOld = await bcryptjs.compare(data.password, user.password);
+        if (isSameAsOld) {
+          throw new HttpError(400, "Cannot reuse your current password");
+        }
+      }
+      data.password = await bcryptjs.hash(data.password, 10);
+      data.passwordChangedAt = new Date();
+    }
+
     const updatedUser = await userRepository.updateUser(userId, data);
 
     if (!updatedUser) {
