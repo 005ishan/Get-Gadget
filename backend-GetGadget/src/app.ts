@@ -18,6 +18,8 @@ const app: Application = express();
 
 // Security headers
 app.use(helmet());
+app.use(helmet.hidePoweredBy());
+app.use(helmet.referrerPolicy({ policy: "same-origin" }));
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
