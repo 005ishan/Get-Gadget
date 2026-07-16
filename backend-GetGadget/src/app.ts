@@ -65,9 +65,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parser with size limits
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
 // Static files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
