@@ -238,7 +238,7 @@ export default function AdminOrdersPage() {
                     const currentIdx = STATUS_FLOW.indexOf(order.status);
                     const nextStatus = STATUS_FLOW[currentIdx + 1] ?? null;
                     const isUpdating = updating === order._id;
-                    const email = typeof order.userId === "object" ? order.userId.email : order.userId;
+                    const email = order.userId && typeof order.userId === "object" ? order.userId.email : order.userId;
 
                     return (
                       <tr key={order._id} className="hover:bg-gray-50 transition">
@@ -254,7 +254,7 @@ export default function AdminOrdersPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs text-gray-600">{email}</span>
+                            <span className="text-xs text-gray-600">{email || "Deleted user"}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">

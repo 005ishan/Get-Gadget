@@ -6,6 +6,8 @@ const publicRoutes = [
   "/register",
   "/forget-password",
   "/reset-password",
+  "/auth/payment-success",
+  "/auth/payment-failure",
 ];
 
 export async function proxy(request: NextRequest) {

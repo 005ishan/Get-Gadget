@@ -65,15 +65,19 @@ export class OrderController {
   };
 
   createOrder = async (req: Request, res: Response) => {
+    const { userId, transactionId, items, totalAmount } = req.body;
+
+    if (!userId || !transactionId || !items || !totalAmount) {
+      return res.status(400).json({ message: "Missing required fields: userId, transactionId, items, totalAmount" });
+    }
+
     const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-      const { userId, transactionId, items, totalAmount } = req.body;
+      session.startTransaction();
       const order = await OrderModel.create([{
         userId, transactionId, items, totalAmount, status: "pending",
       }], { session });
 
-      // Clear user cart within the same transaction
       await UserModel.updateOne(
         { _id: userId },
         { $set: { cart: [] } },
@@ -81,13 +85,22 @@ export class OrderController {
       );
 
       await session.commitTransaction();
-
       logger.info("Order created with rollback safety", { transactionId, userId });
-      res.status(201).json(order[0]);
+      return res.status(201).json(order[0]);
     } catch (err) {
-      await session.abortTransaction();
-      logger.error("Order creation failed, rolled back", { error: err });
-      res.status(500).json({ message: "Failed to create order" });
+      try { await session.abortTransaction(); } catch {}
+      logger.error("Order creation with transaction failed, falling back", { error: err });
+      try {
+        const order = await OrderModel.create({
+          userId, transactionId, items, totalAmount, status: "pending",
+        });
+        await UserModel.updateOne({ _id: userId }, { $set: { cart: [] } });
+        logger.info("Order created without transaction", { transactionId, userId });
+        return res.status(201).json(order);
+      } catch (fallbackErr) {
+        logger.error("Order creation failed completely", { error: fallbackErr });
+        return res.status(500).json({ message: "Failed to create order" });
+      }
     } finally {
       session.endSession();
     }
