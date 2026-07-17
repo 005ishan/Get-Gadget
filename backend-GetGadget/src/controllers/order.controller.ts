@@ -1,28 +1,29 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { OrderModel } from "../models/order.model";
+import { TransactionModel } from "../models/transaction.model";
+import { UserModel } from "../models/user.model";
+import { AuditLogModel } from "../models/auditLog.model";
+import { logger } from "../utils/logger";
 
 export class OrderController {
-  // GET /api/orders/:userId — customer gets their own orders with ownership check
   getUserOrders = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-
-      // Ownership check: users can only view their own orders
       const requestingUser = (req as any).user;
       if (requestingUser && requestingUser._id.toString() !== userId) {
         return res.status(403).json({
           message: "Access denied: you can only view your own orders"
         });
       }
-
       const orders = await OrderModel.find({ userId }).sort({ createdAt: -1 });
       res.json(orders);
     } catch (err) {
+      logger.error("Failed to fetch user orders", { error: err });
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   };
 
-  // GET /api/admin/orders — admin gets ALL orders
   getAllOrders = async (req: Request, res: Response) => {
     try {
       const orders = await OrderModel.find()
@@ -30,63 +31,76 @@ export class OrderController {
         .sort({ createdAt: -1 });
       res.json(orders);
     } catch (err) {
+      logger.error("Failed to fetch all orders", { error: err });
       res.status(500).json({ message: "Failed to fetch orders" });
     }
   };
 
-  // PATCH /api/admin/orders/:id/status — admin updates order status
   updateStatus = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
-
       const valid = ["pending", "processing", "shipped", "delivered"];
       if (!valid.includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
-
-      const order = await OrderModel.findByIdAndUpdate(
-        id,
-        { status },
-        { new: true },
-      );
-
+      const order = await OrderModel.findByIdAndUpdate(id, { status }, { new: true });
       if (!order) return res.status(404).json({ message: "Order not found" });
 
+      await AuditLogModel.create({
+        userId: (req as any).user?._id || "admin",
+        email: (req as any).user?.email || "admin",
+        action: "ORDER_STATUS_UPDATED",
+        details: `Order ${id} status changed to ${status}`,
+        ip: req.ip || "unknown",
+        userAgent: req.headers["user-agent"] || "unknown",
+      });
+
+      logger.info("Order status updated", { orderId: id, status });
       res.json(order);
     } catch (err) {
+      logger.error("Failed to update order status", { error: err });
       res.status(500).json({ message: "Failed to update status" });
     }
   };
 
-  // POST /api/orders — create order after successful payment
   createOrder = async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try {
       const { userId, transactionId, items, totalAmount } = req.body;
-      const order = await OrderModel.create({
-        userId,
-        transactionId,
-        items,
-        totalAmount,
-        status: "pending",
-      });
-      res.status(201).json(order);
+      const order = await OrderModel.create([{
+        userId, transactionId, items, totalAmount, status: "pending",
+      }], { session });
+
+      // Clear user cart within the same transaction
+      await UserModel.updateOne(
+        { _id: userId },
+        { $set: { cart: [] } },
+        { session }
+      );
+
+      await session.commitTransaction();
+
+      logger.info("Order created with rollback safety", { transactionId, userId });
+      res.status(201).json(order[0]);
     } catch (err) {
+      await session.abortTransaction();
+      logger.error("Order creation failed, rolled back", { error: err });
       res.status(500).json({ message: "Failed to create order" });
+    } finally {
+      session.endSession();
     }
   };
 
-  // POST /api/admin/orders/backfill — create orders from existing transactions
   backfillOrders = async (req: Request, res: Response) => {
     try {
       const { transactions } = req.body;
       if (!Array.isArray(transactions) || transactions.length === 0) {
         return res.status(400).json({ message: "No transactions provided" });
       }
-
       const existingOrders = await OrderModel.find({}).select("transactionId");
       const existingTxIds = new Set(existingOrders.map((o) => o.transactionId));
-
       let created = 0;
       let skipped = 0;
 
@@ -95,12 +109,10 @@ export class OrderController {
           skipped++;
           continue;
         }
-
         if (existingTxIds.has(tx.transactionId)) {
           skipped++;
           continue;
         }
-
         await OrderModel.create({
           userId: tx.userId,
           transactionId: tx.transactionId,
@@ -108,17 +120,16 @@ export class OrderController {
           totalAmount: tx.totalAmount,
           status: "pending",
         });
-
         created++;
       }
-
+      logger.info("Orders backfilled", { created, skipped });
       res.json({
         success: true,
         message: `Created ${created} order(s), skipped ${skipped} transaction(s)`,
-        created,
-        skipped,
+        created, skipped,
       });
     } catch (err) {
+      logger.error("Failed to backfill orders", { error: err });
       res.status(500).json({ message: "Failed to backfill orders" });
     }
   };
