@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { logger } from "./utils/logger";
 import { FRONTEND_URL } from "./config";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/admin/user.route";
@@ -79,6 +80,26 @@ app.get("/", (req: Request, res: Response) => {
     success: true,
     message: "Welcome to the API",
   });
+});
+
+app.get("/api/health", async (req: Request, res: Response) => {
+  try {
+    const mongoose = await import("mongoose");
+    const dbState = mongoose.default.connection.readyState;
+    const states: Record<number, string> = {
+      0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting",
+    };
+    res.json({
+      success: true,
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: states[dbState] || "unknown",
+      environment: process.env.NODE_ENV || "development",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, status: "error", message: "Health check failed" });
+  }
 });
 
 app.get("/api", (req: Request, res: Response) => {

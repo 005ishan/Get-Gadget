@@ -64,9 +64,6 @@ const clearCart = async () =>
 const clearFavourites = async () =>
   UserModel.updateOne({ _id: userId }, { $set: { favourites: [] } });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CART — ADD
-// ═══════════════════════════════════════════════════════════════════════════════
 
 describe("POST /api/users/:userId/cart — Add to Cart", () => {
   afterEach(async () => clearCart());
@@ -206,7 +203,6 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
     );
     expect(removed).toBeUndefined();
 
-    // Other product should still be there
     const remaining = res.body.find(
       (i: any) => i.product?.toString() === productId2
     );

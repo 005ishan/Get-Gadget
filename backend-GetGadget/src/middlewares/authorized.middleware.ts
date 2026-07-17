@@ -29,7 +29,6 @@ export const authorizedMiddleware = async (
     const token = authHeader.split(" ")[1];
     if (!token) throw new HttpError(401, "Unauthorized JWT missing");
 
-    // Check if token is blacklisted (revoked on logout)
     const isBlacklisted = await BlacklistModel.findOne({ token: token });
     if (isBlacklisted) {
       throw new HttpError(401, "Token has been revoked");
@@ -43,7 +42,6 @@ export const authorizedMiddleware = async (
     const user = await userRepository.getUserById(decodedToken._id);
     if (!user) throw new HttpError(401, "Unauthorized user not found");
 
-    // Invalidate tokens issued before password was changed
     if (user.passwordChangedAt && decodedToken.iat) {
       const changedAt = Math.floor(user.passwordChangedAt.getTime() / 1000);
       if (changedAt > decodedToken.iat) {

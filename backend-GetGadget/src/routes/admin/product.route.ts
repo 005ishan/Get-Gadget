@@ -7,6 +7,7 @@ import {
   adminMiddleware,
   authorizedMiddleware,
 } from "../../middlewares/authorized.middleware";
+import { logger } from "../../utils/logger";
 
 const router = Router();
 const controller = new ProductController();
@@ -33,7 +34,7 @@ router.get("/search", searchLimiter, async (req, res) => {
 
     res.json({ success: true, data: products });
   } catch (err) {
-    console.error("Search route error:", err);
+    logger.error("Search route error", { error: err });
     res.status(500).json({ success: false, message: "Server error" });
   }
 });

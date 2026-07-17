@@ -20,7 +20,6 @@ export class UserService {
       throw new HttpError(403, "Email already in use");
     }
 
-    // Hash password with bcrypt
     const hashedPassword = await bcryptjs.hash(data.password, 10);
 
     const userData: Partial<IUser> = {
@@ -38,12 +37,10 @@ export class UserService {
     if (!user) {
       throw new HttpError(404, "User not found");
     }
-    // Compare plaintext password against stored hash
     const validPassword = await bcryptjs.compare(data.password, user.password);
     if (!validPassword) {
       throw new HttpError(401, "Invalid credentials");
     }
-    // Generate JWT
     const payload = {
       id: user._id,
       email: user.email,
@@ -114,7 +111,6 @@ export class UserService {
       const user = await userRepository.getUserById(id);
       if (!user) throw new HttpError(404, "User not found");
 
-      // Check email uniqueness
       if (data.email && data.email !== user.email) {
         const emailCheck = await userRepository.getUserByEmail(data.email);
         if (emailCheck) throw new HttpError(403, "Email already in use");
@@ -125,7 +121,6 @@ export class UserService {
         role: data.role ?? user.role,
       };
 
-      // Hash password with reuse prevention
       if (data.password) {
         const isSameAsOld = await bcryptjs.compare(data.password, user.password);
         if (isSameAsOld) {

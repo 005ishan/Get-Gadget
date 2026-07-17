@@ -2,7 +2,6 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:5050";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface GatewayProps {
   amount: number;
   products: string;
@@ -12,7 +11,6 @@ interface GatewayProps {
   onCancel?: () => void;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function generateUUID(): string {
   return `${Date.now()}-${Math.random()
     .toString(36)
@@ -20,11 +18,6 @@ function generateUUID(): string {
     .toUpperCase()}`;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  eSewa Gateway
-//  Flow: frontend fetches HMAC signature from backend → submits hidden form
-//        → eSewa redirects to /auth/payment-success on success
-// ══════════════════════════════════════════════════════════════════════════════
 export function EsewaGateway({
   amount,
   products,
@@ -101,12 +94,6 @@ export function EsewaGateway({
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  Khalti Gateway
-//  Flow: frontend calls backend → backend calls Khalti API with secret key
-//        → backend returns payment_url → frontend redirects user
-//        → Khalti redirects to /auth/payment-success?pidx=...
-// ══════════════════════════════════════════════════════════════════════════════
 export function KhaltiGateway({
   amount,
   products,
@@ -165,7 +152,6 @@ export function KhaltiGateway({
   );
 }
 
-// ─── SVG Logos ────────────────────────────────────────────────────────────────
 function EsewaLogo() {
   return <img src="/icons/esewa.png" alt="eSewa" className="h-6 w-auto" />;
 }
