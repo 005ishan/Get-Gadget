@@ -9,8 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { handleLogin } from "@/lib/actions/auth-action";
 import Link from "next/link";
 import { AppToast } from "@/lib/toast";
-import { signIn } from "next-auth/react";
-import Image from "next/image";
+
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -121,36 +120,6 @@ export default function LoginForm() {
         >
           Forgot password?
         </Link>
-
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-100" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-3 text-gray-400">OR CONTINUE WITH</span>
-          </div>
-        </div>
-
-        {/* SOCIAL BUTTONS ROW */}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/auth/dashboard" })}
-            className="flex flex-1 h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 transition-colors hover:bg-gray-50 cursor-pointer"
-          >
-            <Image src="/icons/google.svg" alt="google" width={18} height={18} />
-            <span className="text-sm font-medium text-gray-600">Google</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => signIn("facebook", { callbackUrl: "/auth/dashboard" })}
-            className="flex flex-1 h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 transition-colors hover:bg-gray-50 cursor-pointer"
-          >
-            <Image src="/icons/facebook.svg" alt="facebook" width={18} height={18} />
-            <span className="text-sm font-medium text-gray-600">Facebook</span>
-          </button>
-        </div>
 
         <button
           type="submit"

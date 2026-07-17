@@ -1,11 +1,3 @@
-/**
- * ORDERS INTEGRATION TESTS — 12 Tests
- * File: __tests__/integration/orders.test.ts
- *
- * All data created during tests is deleted immediately after each test.
- * Safe to run against your real MongoDB.
- */
-
 import request from "supertest";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -91,12 +83,7 @@ afterAll(async () => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CREATE ORDER
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("POST /api/orders — Create Order", () => {
-  // TC-ORD-01
   it("TC-ORD-01: authenticated user creates an order and gets 201 with status=pending", async () => {
     const txnId = `${TAG}txn_tc01`;
     const res = await request(app)
@@ -114,7 +101,6 @@ describe("POST /api/orders — Create Order", () => {
     await OrderModel.deleteOne({ transactionId: txnId }); // self-clean
   });
 
-  // TC-ORD-02
   it("TC-ORD-02: order always defaults to status=pending regardless of payload", async () => {
     const txnId = `${TAG}txn_tc02`;
     const res = await request(app)
@@ -132,7 +118,6 @@ describe("POST /api/orders — Create Order", () => {
     await OrderModel.deleteOne({ transactionId: txnId }); // self-clean
   });
 
-  // TC-ORD-03
   it("TC-ORD-03: returns 401 when unauthenticated user tries to create an order", async () => {
     const res = await request(app)
       .post("/api/orders")
@@ -140,7 +125,6 @@ describe("POST /api/orders — Create Order", () => {
     expect(res.status).toBe(401);
   });
 
-  // TC-ORD-04
   it("TC-ORD-04: order response contains correct userId and totalAmount", async () => {
     const txnId = `${TAG}txn_tc04`;
     const res = await request(app)
@@ -159,12 +143,7 @@ describe("POST /api/orders — Create Order", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// GET USER ORDERS
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("GET /api/orders/:userId — Customer Orders", () => {
-  // TC-ORD-05
   it("TC-ORD-05: user retrieves only their own orders", async () => {
     const res = await request(app)
       .get(`/api/orders/${userId}`)
@@ -177,7 +156,6 @@ describe("GET /api/orders/:userId — Customer Orders", () => {
     );
   });
 
-  // TC-ORD-06
   it("TC-ORD-06: returns empty array for a user with no orders", async () => {
     const fresh = await UserModel.create({
       email: `${TAG}noorders@test.com`,
@@ -198,12 +176,7 @@ describe("GET /api/orders/:userId — Customer Orders", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// ADMIN ORDERS
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
-  // TC-ORD-07
   it("TC-ORD-07: admin retrieves all orders successfully", async () => {
     const res = await request(app)
       .get("/api/admin/orders")
@@ -213,7 +186,6 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     expect(res.body.length).toBeGreaterThan(0);
   });
 
-  // TC-ORD-08
   it("TC-ORD-08: returns 403 when non-admin tries to access admin orders", async () => {
     const res = await request(app)
       .get("/api/admin/orders")
@@ -221,7 +193,6 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     expect(res.status).toBe(403);
   });
 
-  // TC-ORD-09
   it("TC-ORD-09: admin updates order status from pending to processing", async () => {
     const order = await OrderModel.create({
       userId: userObjectId,
@@ -239,7 +210,6 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     await OrderModel.deleteOne({ _id: order._id }); // self-clean
   });
 
-  // TC-ORD-10
   it("TC-ORD-10: admin updates order status to delivered", async () => {
     const order = await OrderModel.create({
       userId: userObjectId,
@@ -257,7 +227,6 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     await OrderModel.deleteOne({ _id: order._id }); // self-clean
   });
 
-  // TC-ORD-11
   it("TC-ORD-11: returns 400 when status is not a valid enum value", async () => {
     const res = await request(app)
       .patch(`/api/admin/orders/${seededOrderId}/status`)
@@ -267,7 +236,6 @@ describe("Admin Orders — GET & PATCH /api/admin/orders", () => {
     expect(res.body.message).toBe("Invalid status");
   });
 
-  // TC-ORD-12
   it("TC-ORD-12: returns 404 when updating status of a non-existent order", async () => {
     const fakeId = new mongoose.Types.ObjectId().toString();
     const res = await request(app)

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "@/lib/api/axios";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import { useCartFav } from "@/context/CartFavContext";
@@ -38,6 +39,8 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
   const { bumpCart, bumpFav } = useCartFav();
 
   useEffect(() => {
@@ -45,7 +48,7 @@ export default function ProductDetailPage() {
 
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`/admin/products/${productId}`);
+        const res = await axios.get(`/api/admin/products/${productId}`);
         setProduct(res.data.data);
       } catch (error) {
         console.error(error);
@@ -73,6 +76,20 @@ export default function ProductDetailPage() {
       })
       .catch(() => {});
   }, [product?._id]);
+
+  // Fetch related products from the same category
+  useEffect(() => {
+    if (!product?.category) return;
+    setRelatedLoading(true);
+    axios.get(`/api/admin/products?category=${product.category}`)
+      .then(res => {
+        const all = res.data.data || [];
+        const filtered = all.filter((p: Product) => p._id !== product._id).slice(0, 4);
+        setRelatedProducts(filtered);
+      })
+      .catch(() => setRelatedProducts([]))
+      .finally(() => setRelatedLoading(false));
+  }, [product?._id, product?.category]);
 
   const addToCart = async () => {
     try {
@@ -359,27 +376,48 @@ export default function ProductDetailPage() {
         <div className="mt-20">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900">You May Also Like</h2>
-            <p className="mt-1 text-sm text-gray-400">Discover more premium gadget accessories</p>
+            <p className="mt-1 text-sm text-gray-400">Discover more {product.category} products</p>
           </div>
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-            {[
-              { name: "Bluetooth Earbuds Pro", price: "Rs 2,499", key: "earbuds" },
-              { name: "Fast Charging USB-C Cable", price: "Rs 499", key: "cable" },
-              { name: "100W GaN Charger", price: "Rs 2,999", key: "charger" },
-              { name: "Wireless Charging Pad", price: "Rs 1,299", key: "pad" },
-            ].map((item) => (
-              <div
-                key={item.key}
-                className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-blue-200/20"
-              >
-                <div className="mb-3 h-32 w-full overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 sm:h-40 flex items-center justify-center">
-                  <Package className="h-12 w-12 text-gray-200 group-hover:scale-110 group-hover:text-blue-300 transition-all duration-300" />
+          {relatedLoading ? (
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                  <div className="mb-3 h-32 sm:h-40 w-full rounded-xl bg-gray-100 animate-pulse" />
+                  <div className="h-4 w-3/4 mx-auto bg-gray-100 rounded animate-pulse" />
                 </div>
-                <p className="text-sm font-semibold text-gray-900">{item.name}</p>
-                <p className="mt-1 text-sm font-bold text-blue-500">{item.price}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : relatedProducts.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <Package className="mx-auto h-12 w-12 mb-3" />
+              <p className="text-sm">No related products found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {relatedProducts.map((rp) => {
+                const rpImg = getImageUrl(rp.imageUrl);
+                return (
+                  <Link
+                    key={rp._id}
+                    href={`/auth/product/${rp._id}`}
+                    className="group rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-blue-200/20"
+                  >
+                    <div className="mb-3 h-32 sm:h-40 w-full overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+                      {rpImg ? (
+                        <img src={rpImg} alt={rp.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <Package className="h-12 w-12 text-gray-200 group-hover:text-blue-300 transition-all duration-300" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 truncate">{rp.name}</p>
+                    <p className="mt-1 text-sm font-bold text-blue-500">Rs {rp.price}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

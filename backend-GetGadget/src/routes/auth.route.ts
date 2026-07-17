@@ -6,7 +6,6 @@ import { authorizedMiddleware } from "../middlewares/authorized.middleware";
 let authController = new AuthController();
 const router = Router();
 
-// Rate limit: 10 attempts per 15 minutes on auth endpoints (skip in test)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === "test" ? 100 : 10,

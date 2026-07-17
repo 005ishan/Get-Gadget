@@ -1,11 +1,3 @@
-/**
- * PRODUCTS INTEGRATION TESTS — 10 Tests
- * File: __tests__/integration/products.test.ts
- *
- * All data created during tests is deleted immediately after each test.
- * Safe to run against your real MongoDB.
- */
-
 import request from "supertest";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -54,12 +46,7 @@ afterAll(async () => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CREATE
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("POST /api/admin/products — Create Product", () => {
-  // TC-PROD-01
   it("TC-PROD-01: admin creates a product and returns 201 with product data", async () => {
     const name = `${TAG}Bluetooth Speaker`;
     const res = await request(app)
@@ -72,7 +59,6 @@ describe("POST /api/admin/products — Create Product", () => {
     await Product.deleteOne({ name }); // self-clean
   });
 
-  // TC-PROD-02
   it("TC-PROD-02: returns 500 when product name is missing (required field)", async () => {
     const res = await request(app)
       .post("/api/admin/products")
@@ -82,7 +68,6 @@ describe("POST /api/admin/products — Create Product", () => {
     expect(res.body.success).toBe(false);
   });
 
-  // TC-PROD-03
   it("TC-PROD-03: returns 500 when category is an invalid enum value", async () => {
     const res = await request(app)
       .post("/api/admin/products")
@@ -93,12 +78,7 @@ describe("POST /api/admin/products — Create Product", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// READ
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("GET /admin/products — Retrieve Products", () => {
-  // TC-PROD-04
   it("TC-PROD-04: retrieves all products and returns a non-empty array", async () => {
     const res = await request(app)
       .get("/api/admin/products")
@@ -109,7 +89,6 @@ describe("GET /admin/products — Retrieve Products", () => {
     expect(res.body.data.length).toBeGreaterThan(0);
   });
 
-  // TC-PROD-05
   it("TC-PROD-05: filters by category=audio and only returns audio products", async () => {
     const res = await request(app)
       .get("/api/admin/products?category=audio")
@@ -118,7 +97,6 @@ describe("GET /admin/products — Retrieve Products", () => {
     res.body.data.forEach((p: any) => expect(p.category).toBe("audio"));
   });
 
-  // TC-PROD-06
   it("TC-PROD-06: filters by category=accessories and only returns accessories", async () => {
     const accessoryProduct = await Product.create({
       name: `${TAG}Phone Case`,
@@ -133,7 +111,6 @@ describe("GET /admin/products — Retrieve Products", () => {
     await Product.deleteOne({ _id: accessoryProduct._id }); // self-clean
   });
 
-  // TC-PROD-07
   it("TC-PROD-07: retrieves a single product by ID", async () => {
     const res = await request(app)
       .get(`/api/admin/products/${seededProductId}`)
@@ -142,7 +119,6 @@ describe("GET /admin/products — Retrieve Products", () => {
     expect(res.body.data._id).toBe(seededProductId);
   });
 
-  // TC-PROD-08
   it("TC-PROD-08: returns 404 for a non-existent product ID", async () => {
     const fakeId = new mongoose.Types.ObjectId().toString();
     const res = await request(app)
@@ -153,12 +129,7 @@ describe("GET /admin/products — Retrieve Products", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// UPDATE & DELETE
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("PUT & DELETE /admin/products/:id", () => {
-  // TC-PROD-09
   it("TC-PROD-09: admin updates a product price and returns the updated document", async () => {
     const tmp = await Product.create({
       name: `${TAG}Update Price Product`,
@@ -175,7 +146,6 @@ describe("PUT & DELETE /admin/products/:id", () => {
     await Product.deleteOne({ _id: tmp._id }); // self-clean
   });
 
-  // TC-PROD-10
   it("TC-PROD-10: admin deletes a product and it no longer exists in DB", async () => {
     const tmp = await Product.create({
       name: `${TAG}Delete Me Product`,

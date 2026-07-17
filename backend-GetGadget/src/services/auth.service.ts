@@ -56,7 +56,7 @@ export class AuthService {
     };
 
     const token = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "24h",
+      expiresIn: "15d",
     });
 
     // Remove password before returning user

@@ -11,7 +11,6 @@ import {
 const router = Router();
 const controller = new ProductController();
 
-// Rate limiter for public search (prevent regex abuse)
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
@@ -20,7 +19,6 @@ const searchLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Backfill and search routes — allowed before auth (public data)
 router.get("/search", searchLimiter, async (req, res) => {
   try {
     const query = req.query.query?.toString() || "";
@@ -40,14 +38,13 @@ router.get("/search", searchLimiter, async (req, res) => {
   }
 });
 router.get("/category", controller.getByCategory);
+router.get("/", controller.getAll);
+router.get("/:id", controller.getOne);
 
-// Admin-only routes (require JWT auth + admin role)
 router.use(authorizedMiddleware);
 router.use(adminMiddleware);
 
 router.post("/", uploads.single("image"), controller.create);
-router.get("/", controller.getAll);
-router.get("/:id", controller.getOne);
 router.put("/:id", uploads.single("image"), controller.update);
 router.delete("/:id", controller.delete);
 

@@ -1,11 +1,3 @@
-/**
- * ADMIN USERS INTEGRATION TESTS — 12 Tests
- * File: __tests__/integration/adminUsers.test.ts
- *
- * All data created during tests is deleted immediately after each test.
- * Safe to run against your real MongoDB.
- */
-
 import request from "supertest";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -57,12 +49,7 @@ afterAll(async () => {
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CREATE
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("POST /api/admin/users — Create User", () => {
-  // TC-ADMUSER-01
   it("TC-ADMUSER-01: admin creates a new user and returns 201", async () => {
     const email = `${TAG}created01@test.com`;
     const res = await request(app)
@@ -75,7 +62,6 @@ describe("POST /api/admin/users — Create User", () => {
     await UserModel.deleteOne({ email }); // self-clean
   });
 
-  // TC-ADMUSER-02
   it("TC-ADMUSER-02: returns 400 when required fields are missing", async () => {
     const res = await request(app)
       .post("/api/admin/users")
@@ -85,7 +71,6 @@ describe("POST /api/admin/users — Create User", () => {
     expect(res.body.success).toBe(false);
   });
 
-  // TC-ADMUSER-03
   it("TC-ADMUSER-03: returns 403 when non-admin user tries to create a user", async () => {
     const res = await request(app)
       .post("/api/admin/users")
@@ -99,7 +84,6 @@ describe("POST /api/admin/users — Create User", () => {
     expect(res.body.success).toBe(false);
   });
 
-  // TC-ADMUSER-04
   it("TC-ADMUSER-04: admin can create a user with role=admin", async () => {
     const email = `${TAG}newadmin@test.com`;
     const res = await request(app)
@@ -112,12 +96,7 @@ describe("POST /api/admin/users — Create User", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// READ
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("GET /api/admin/users — Retrieve Users", () => {
-  // TC-ADMUSER-05
   it("TC-ADMUSER-05: returns paginated user list with pagination metadata", async () => {
     const res = await request(app)
       .get("/api/admin/users?page=1&size=5")
@@ -128,7 +107,6 @@ describe("GET /api/admin/users — Retrieve Users", () => {
     expect(res.body.pagination).toMatchObject({ page: 1, size: 5 });
   });
 
-  // TC-ADMUSER-06
   it("TC-ADMUSER-06: admin can search users by email keyword", async () => {
     const res = await request(app)
       .get(`/api/admin/users?search=${TAG}seeded`)
@@ -138,7 +116,6 @@ describe("GET /api/admin/users — Retrieve Users", () => {
     expect(res.body.data[0].email).toContain(`${TAG}seeded`);
   });
 
-  // TC-ADMUSER-07
   it("TC-ADMUSER-07: admin retrieves a single user by ID", async () => {
     const res = await request(app)
       .get(`/api/admin/users/${seededUserId}`)
@@ -148,7 +125,6 @@ describe("GET /api/admin/users — Retrieve Users", () => {
     expect(res.body.message).toBe("Single User Retrieved");
   });
 
-  // TC-ADMUSER-08
   it("TC-ADMUSER-08: returns 404 for a non-existent user ID", async () => {
     const fakeId = new mongoose.Types.ObjectId().toString();
     const res = await request(app)
@@ -158,7 +134,6 @@ describe("GET /api/admin/users — Retrieve Users", () => {
     expect(res.body.success).toBe(false);
   });
 
-  // TC-ADMUSER-09
   it("TC-ADMUSER-09: returns 401 when no Authorization header is provided", async () => {
     const res = await request(app).get("/api/admin/users");
     expect(res.status).toBe(401);
@@ -166,12 +141,7 @@ describe("GET /api/admin/users — Retrieve Users", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// UPDATE & DELETE
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("PUT & DELETE /api/admin/users/:id", () => {
-  // TC-ADMUSER-10
   it("TC-ADMUSER-10: admin updates a user email and returns updated data", async () => {
     const tmp = await UserModel.create({
       email: `${TAG}updateme@test.com`,
@@ -190,7 +160,6 @@ describe("PUT & DELETE /api/admin/users/:id", () => {
     await UserModel.deleteOne({ _id: tmp._id }); // self-clean
   });
 
-  // TC-ADMUSER-11
   it("TC-ADMUSER-11: admin deletes a user and confirms removal from DB", async () => {
     const tmp = await UserModel.create({
       email: `${TAG}deleteme@test.com`,
@@ -208,7 +177,6 @@ describe("PUT & DELETE /api/admin/users/:id", () => {
     // Already deleted by the route — nothing to clean
   });
 
-  // TC-ADMUSER-12
   it("TC-ADMUSER-12: returns 403 when non-admin tries to delete a user", async () => {
     const tmp = await UserModel.create({
       email: `${TAG}protected@test.com`,

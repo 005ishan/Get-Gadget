@@ -1,4 +1,3 @@
-// src/routes/payment.route.ts
 import { Router, Request, Response } from "express";
 import axios from "axios";
 import crypto from "crypto";
@@ -6,7 +5,8 @@ import rateLimit from "express-rate-limit";
 
 const router = Router();
 
-// Rate limiter: 20 payment attempts per 15 minutes (skip in test)
+console.log("[Khalti] KHALTI_SECRET_KEY loaded:", process.env.KHALTI_SECRET_KEY ? "YES (set)" : "NO (using fallback)");
+
 const paymentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === "test" ? 100 : 20,
@@ -20,13 +20,11 @@ const paymentLimiter = rateLimit({
 
 router.use(paymentLimiter);
 
-// ─── eSewa: generate signature (called by frontend via API) ───────────────────
-// eSewa v2 requires HMAC-SHA256 signature generated server-side
 router.post("/esewa/signature", (req: Request, res: Response) => {
   try {
     const { total_amount, transaction_uuid, product_code } = req.body;
 
-    const secretKey = "8gBm/:&EnhH.1/q"; // eSewa test secret key
+    const secretKey = "8gBm/:&EnhH.1/q";
     const message = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
     const signature = crypto
       .createHmac("sha256", secretKey)
@@ -39,13 +37,11 @@ router.post("/esewa/signature", (req: Request, res: Response) => {
   }
 });
 
-// ─── Khalti: initiate payment (must be server-side, secret key never in frontend) ──
 router.post("/khalti/initiate", async (req: Request, res: Response) => {
   try {
     const { amount, productName, orderId, customerName, customerEmail } =
       req.body;
 
-    // Get your secret key from https://test-admin.khalti.com/
     const KHALTI_SECRET_KEY =
       process.env.KHALTI_SECRET_KEY || "your_test_key_here";
 
@@ -54,7 +50,7 @@ router.post("/khalti/initiate", async (req: Request, res: Response) => {
       {
         return_url: `${process.env.FRONTEND_URL}/auth/payment-success`,
         website_url: process.env.FRONTEND_URL || "http://localhost:3000",
-        amount: amount * 100, // Khalti uses paisa (1 Rs = 100 paisa)
+        amount: amount * 100,
         purchase_order_id: orderId,
         purchase_order_name: productName,
         customer_info: {
@@ -71,7 +67,6 @@ router.post("/khalti/initiate", async (req: Request, res: Response) => {
       },
     );
 
-    // Returns { pidx, payment_url, expires_at, expires_in }
     res.json(response.data);
   } catch (err: any) {
     console.error("Khalti initiate error:", err?.response?.data || err.message);
@@ -79,7 +74,6 @@ router.post("/khalti/initiate", async (req: Request, res: Response) => {
   }
 });
 
-// ─── Khalti: verify payment after redirect ────────────────────────────────────
 router.post("/khalti/verify", async (req: Request, res: Response) => {
   try {
     const { pidx } = req.body;
@@ -97,7 +91,6 @@ router.post("/khalti/verify", async (req: Request, res: Response) => {
       },
     );
 
-    // status will be "Completed" if payment was successful
     res.json(response.data);
   } catch (err: any) {
     console.error("Khalti verify error:", err?.response?.data || err.message);

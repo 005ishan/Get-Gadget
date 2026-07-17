@@ -16,8 +16,7 @@ import paymentRoutes from "./routes/payment.route";
 
 const app: Application = express();
 
-// Security headers
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(helmet.hidePoweredBy());
 app.use(helmet.referrerPolicy({ policy: "same-origin" }));
 app.use(
@@ -31,7 +30,6 @@ app.use(
   })
 );
 
-// General rate limiter: 100 requests per 15 minutes
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -45,7 +43,6 @@ const generalLimiter = rateLimit({
 
 app.use(generalLimiter);
 
-// Response timeout (30s for regular, 60s for uploads)
 app.use((req, res, next) => {
   const timeout = req.path.startsWith("/api/admin/products") ? 60000 : 30000;
   req.setTimeout(timeout, () => {
@@ -56,7 +53,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS config
 const corsOptions = {
   origin: FRONTEND_URL,
   optionsSuccessStatus: 200,
@@ -65,14 +61,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Body parser with size limits
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
-// Static files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/users", userRoutes);
 app.use("/api/users", userRoutess);
@@ -82,7 +74,6 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/payment", paymentRoutes);
 
-// Root test routes
 app.get("/", (req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
@@ -98,7 +89,6 @@ app.get("/api", (req: Request, res: Response) => {
   });
 });
 
-// Global error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof HttpError) {
     return res.status(err.statusCode).json({

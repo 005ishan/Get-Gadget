@@ -1,11 +1,3 @@
-/**
- * CART & FAVOURITES INTEGRATION TESTS — 14 Tests
- * File: __tests__/integration/cart.test.ts
- *
- * All data created during tests is deleted immediately after each test.
- * Safe to run against your real MongoDB.
- */
-
 import request from "supertest";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -66,7 +58,6 @@ afterAll(async () => {
   }
 });
 
-// Helper to clear cart between tests
 const clearCart = async () =>
   UserModel.updateOne({ _id: userId }, { $set: { cart: [] } });
 
@@ -80,7 +71,6 @@ const clearFavourites = async () =>
 describe("POST /api/users/:userId/cart — Add to Cart", () => {
   afterEach(async () => clearCart());
 
-  // TC-CART-01
   it("TC-CART-01: user adds a product to cart and gets back updated cart array", async () => {
     const res = await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -96,7 +86,6 @@ describe("POST /api/users/:userId/cart — Add to Cart", () => {
     expect(item.quantity).toBe(2);
   });
 
-  // TC-CART-02
   it("TC-CART-02: adding same product increments quantity, does not duplicate", async () => {
     await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -117,7 +106,6 @@ describe("POST /api/users/:userId/cart — Add to Cart", () => {
     expect(items[0].quantity).toBe(5);
   });
 
-  // TC-CART-03
   it("TC-CART-03: adding same product merges into one entry", async () => {
     await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -136,7 +124,6 @@ describe("POST /api/users/:userId/cart — Add to Cart", () => {
     expect(entries.length).toBe(1);
   });
 
-  // TC-CART-04
   it("TC-CART-04: returns 4xx or 5xx when quantity is less than 1", async () => {
     const res = await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -145,7 +132,6 @@ describe("POST /api/users/:userId/cart — Add to Cart", () => {
     expect(res.status).toBeGreaterThanOrEqual(400);
   });
 
-  // TC-CART-05
   it("TC-CART-05: returns 4xx or 5xx when productId is missing", async () => {
     const res = await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -155,14 +141,9 @@ describe("POST /api/users/:userId/cart — Add to Cart", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CART — GET, PUT, DELETE
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
   afterEach(async () => clearCart());
 
-  // TC-CART-06
   it("TC-CART-06: GET cart returns array with current items", async () => {
     await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -177,7 +158,6 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
     expect(res.body.length).toBeGreaterThan(0);
   });
 
-  // TC-CART-07
   it("TC-CART-07: GET cart returns empty array when cart is empty", async () => {
     const res = await request(app)
       .get(`/api/users/${userId}/cart`)
@@ -186,7 +166,6 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
     expect(res.body).toEqual([]);
   });
 
-  // TC-CART-08
   it("TC-CART-08: PUT cart updates quantity of an existing item", async () => {
     await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -205,7 +184,6 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
     expect(updated?.quantity).toBe(10);
   });
 
-  // TC-CART-09
   it("TC-CART-09: DELETE cart item removes the matching product", async () => {
     await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -235,7 +213,6 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
     expect(remaining).toBeDefined();
   });
 
-  // TC-CART-10
   it("TC-CART-10: DELETE /cart/clear empties the entire cart", async () => {
     await request(app)
       .post(`/api/users/${userId}/cart`)
@@ -254,14 +231,9 @@ describe("GET, PUT, DELETE /api/users/:userId/cart — Manage Cart", () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// FAVOURITES
-// ═══════════════════════════════════════════════════════════════════════════════
-
 describe("Favourites — POST /api/users/:userId/favourite", () => {
   afterEach(async () => clearFavourites());
 
-  // TC-FAV-01
   it("TC-FAV-01: POST toggle adds product to favourites", async () => {
     const res = await request(app)
       .post(`/api/users/${userId}/favourite`)
@@ -273,7 +245,6 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
     expect(fav).toBeDefined();
   });
 
-  // TC-FAV-02
   it("TC-FAV-02: POST toggle again removes product from favourites", async () => {
     await request(app)
       .post(`/api/users/${userId}/favourite`)
@@ -290,7 +261,6 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
     expect(fav).toBeUndefined();
   });
 
-  // TC-FAV-03
   it("TC-FAV-03: favourites list is empty in DB after toggling off", async () => {
     await request(app)
       .post(`/api/users/${userId}/favourite`)
@@ -305,7 +275,6 @@ describe("Favourites — POST /api/users/:userId/favourite", () => {
     expect(user?.favourites.length).toBe(0);
   });
 
-  // TC-FAV-04
   it("TC-FAV-04: multiple products can be added to favourites independently", async () => {
     await request(app)
       .post(`/api/users/${userId}/favourite`)

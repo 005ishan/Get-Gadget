@@ -140,7 +140,7 @@ export default function Header() {
     const delayDebounce = setTimeout(async () => {
       try {
         const res = await axios.get(
-          `/admin/products/search?query=${searchQuery}`,
+          `/api/admin/products/search?query=${searchQuery}`,
         );
         setSuggestions(res.data.data || []);
         setShowSuggestions(true);
