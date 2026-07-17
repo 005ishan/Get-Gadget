@@ -33,18 +33,28 @@ export const handleRegister = async (data: RegisterData) => {
 export const handleLogin = async (data: LoginData) => {
   try {
     const response = await login(data);
-   if (response.success) {
-  await setAuthToken(response.token);
-  await setUserData(response.data);
-  return {
-    success: true,
-    message: "Login successful",
-    data: {
-      ...response.data,     // all user info
-      token: response.token // include the token
-    },
-  };
-}
+
+    // Handle MFA flow
+    if (response.mfaRequired) {
+      return {
+        mfaRequired: true,
+        userId: response.userId,
+        message: response.message,
+      };
+    }
+
+    if (response.success) {
+      await setAuthToken(response.token);
+      await setUserData(response.data);
+      return {
+        success: true,
+        message: "Login successful",
+        data: {
+          ...response.data,
+          token: response.token
+        },
+      };
+    }
 
     return {
       success: false,
@@ -80,7 +90,34 @@ export const handleRequestPasswordReset = async (email: string) => {
     };
   }
 };
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5050";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+
+export async function handleVerifyMfaOtp(userId: string, otp: string) {
+  try {
+    const url = `${BASE_URL.replace(/\/$/, "")}/api/auth/verify-otp`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, message: data.message || "OTP verification failed" };
+    }
+    if (data.success && data.token) {
+      await setAuthToken(data.token);
+      await setUserData(data.data);
+      return {
+        success: true,
+        message: "Logged in successfully",
+        data: { ...data.data, token: data.token },
+      };
+    }
+    return { success: false, message: data.message || "OTP verification failed" };
+  } catch (error: any) {
+    return { success: false, message: error.message || "OTP verification failed" };
+  }
+}
 export async function handleResetPassword(token: string, newPassword: string) {
   const url = `${BASE_URL}/api/auth/reset-password/${encodeURIComponent(
     token,
