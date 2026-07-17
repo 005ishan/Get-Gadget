@@ -8,6 +8,7 @@
   import Link from "next/link";
   import { handleRegister } from "@/lib/actions/auth-action";
   import { AppToast } from "@/lib/toast";
+  import { getCaptchaToken } from "@/lib/captcha";
 
   export default function RegisterForm() {
     const router = useRouter();
@@ -32,7 +33,9 @@
       setServerError(null);
 
       try {
-        const promise = handleRegister(values);
+        const captchaToken = await getCaptchaToken("register");
+        const valuesWithCaptcha = { ...values, captchaToken };
+        const promise = handleRegister(valuesWithCaptcha);
 
         const response = await AppToast.promise(promise, {
           loading: "Creating your account...",
