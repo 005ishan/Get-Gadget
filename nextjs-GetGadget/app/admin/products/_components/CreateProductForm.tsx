@@ -3,7 +3,6 @@
 import axios from "@/lib/api/axios";
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 interface Product {
   _id: string;

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import { useCartFav } from "@/context/CartFavContext";
-import "react-toastify/dist/ReactToastify.css";
 import {
   ShoppingCart,
   Heart,

@@ -6,7 +6,6 @@ import axios from "@/lib/api/axios";
 import { Heart, Headphones, Volume2, Mic, Bluetooth, ArrowLeft, Sparkles } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import { useCartFav } from "@/context/CartFavContext";
-import "react-toastify/dist/ReactToastify.css";
 
 interface Product {
   _id: string;

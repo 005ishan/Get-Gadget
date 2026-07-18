@@ -11,7 +11,6 @@ import Link from "next/link";
 import { AppToast } from "@/lib/toast";
 import { getCaptchaToken } from "@/lib/captcha";
 
-import "react-toastify/dist/ReactToastify.css";
 
 export default function LoginForm() {
   const router = useRouter();

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "@/lib/api/axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import axios from "@/lib/api/axios";import { toast, ToastContainer } from "react-toastify";
+
+
 import { EsewaGateway, KhaltiGateway } from "../gateaway/payment-gateway";
 import { ShoppingCart, Trash2, ChevronLeft, Minus, Plus, ArrowRight } from "lucide-react";
 import Link from "next/link";

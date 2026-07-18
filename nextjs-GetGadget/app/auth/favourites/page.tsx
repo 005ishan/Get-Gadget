@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import axios from "@/lib/api/axios";
 import { Heart } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 interface Product {
   _id: string;
