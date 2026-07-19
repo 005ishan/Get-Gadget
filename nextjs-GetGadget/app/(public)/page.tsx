@@ -1,94 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { X, ArrowRight, Star, Shield, Zap, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, ArrowRight, Star, Shield, Zap, Truck, Package } from "lucide-react";
+import axios from "@/lib/api/axios";
 
-const PRODUCTS = [
-  {
-    id: 1,
-    name: "Wireless Noise-Cancelling Headphones",
-    key: "headphones",
-    price: "Rs 4,999",
-    tag: "Best Seller",
-    category: "Audio",
-  },
-  {
-    id: 2,
-    name: "Bluetooth Earbuds Pro",
-    key: "earbuds",
-    price: "Rs 2,499",
-    tag: "New",
-    category: "Audio",
-  },
-  {
-    id: 3,
-    name: "Fast Charging USB-C Cable",
-    key: "cable",
-    price: "Rs 499",
-    tag: "Popular",
-    category: "Charging",
-  },
-  {
-    id: 4,
-    name: "100W GaN Charger",
-    key: "charger",
-    price: "Rs 2,999",
-    tag: "Limited",
-    category: "Charging",
-  },
-  {
-    id: 5,
-    name: "Shockproof Phone Case",
-    key: "case",
-    price: "Rs 799",
-    tag: "Premium",
-    category: "Accessories",
-  },
-  {
-    id: 6,
-    name: "Portable Bluetooth Speaker",
-    key: "speaker",
-    price: "Rs 3,499",
-    tag: "Trending",
-    category: "Audio",
-  },
-  { id: 7, name: "Wireless Charging Pad", key: "pad", price: "Rs 1,299", category: "Charging" },
-];
-
-const FEATURED = [
-  {
-    id: 1,
-    name: "Premium Audio",
-    key: "headphones",
-    desc: "Crystal-clear sound with deep bass. Experience music the way it was meant to be heard.",
-    price: "Rs 4,999",
-  },
-  {
-    id: 2,
-    name: "Rapid Charging",
-    key: "charger",
-    desc: "Super-fast charging solutions for all your devices. Power up in minutes.",
-    price: "Rs 2,999",
-  },
-  {
-    id: 3,
-    name: "Ultimate Protection",
-    key: "case",
-    desc: "Military-grade protection meets sleek design. Your device deserves the best.",
-    price: "Rs 799",
-  },
-];
-
-const IMAGES: Record<string, string> = {
-  headphones: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-  earbuds: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop",
-  cable: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400&h=400&fit=crop",
-  charger: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop",
-  case: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400&h=400&fit=crop",
-  protector: "https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=400&h=400&fit=crop",
-  speaker: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400&h=400&fit=crop",
-  pad: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop",
-};
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  category: string;
+  imageUrl?: string;
+  description?: string;
+}
 
 const trustFeatures = [
   { icon: Truck, label: "Free Shipping", desc: "On orders over Rs 1,000" },
@@ -97,36 +20,45 @@ const trustFeatures = [
   { icon: Star, label: "Premium Quality", desc: "100% satisfaction guaranteed" },
 ];
 
-const categories = [
-  {
-    name: "Audio",
-    imgKey: "headphones",
-    desc: "Headphones, earbuds & speakers for every vibe.",
-    count: "12 items",
-  },
-  {
-    name: "Charging",
-    imgKey: "charger",
-    desc: "Fast chargers, cables & power banks for all devices.",
-    count: "8 items",
-  },
-  {
-    name: "Accessories",
-    imgKey: "case",
-    desc: "Cases, screen protectors & stands to level up.",
-    count: "10 items",
-  },
-];
+function getApiUrl() {
+  return (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
+}
+
+function resolveImage(product: Product) {
+  if (product.imageUrl) {
+    if (product.imageUrl.startsWith("http")) return product.imageUrl;
+    return `${getApiUrl()}${product.imageUrl}`;
+  }
+  return null;
+}
+
+function countByCategory(products: Product[], cat: string) {
+  return products.filter((p) => p.category?.toLowerCase() === cat.toLowerCase()).length;
+}
 
 export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState<string | null>(null);
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<Product | null>(null);
 
-  const open = (p: any) => {
+  useEffect(() => {
+    axios
+      .get("/api/admin/products")
+      .then((res) => setProducts(res.data.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const open = (p: Product) => {
     setSelected(p);
     setModal("product");
   };
   const close = () => setModal(null);
+
+  const firstTwo = products.slice(0, 2);
+  const featured = products.slice(0, 3);
+  const allItems = products.slice(0, 7);
 
   return (
     <main className="w-full min-h-screen overflow-hidden bg-white">
@@ -170,36 +102,38 @@ export default function Home() {
           </div>
 
           <div className="relative mt-14 flex justify-center lg:mt-0">
-            <div className="relative rounded-[32px] border border-blue-100 bg-white/60 p-6 shadow-xl shadow-blue-200/20 backdrop-blur-xl">
-              <div className="flex gap-6">
-                <div
-                  onClick={() => open(PRODUCTS[0])}
-                  className="h-48 w-[140px] cursor-pointer overflow-hidden rounded-2xl shadow-md transition duration-500 hover:-translate-y-2 sm:w-[180px] md:w-[220px]"
-                >
-                  <img
-                    src={IMAGES[PRODUCTS[0].key]}
-                    alt={PRODUCTS[0].name}
-                    className="h-full w-full object-cover"
-                  />
+            {loading ? (
+              <div className="flex h-48 w-[300px] items-center justify-center rounded-[32px] bg-gray-100 animate-pulse sm:w-[400px]" />
+            ) : (
+              <div className="relative rounded-[32px] border border-blue-100 bg-white/60 p-6 shadow-xl shadow-blue-200/20 backdrop-blur-xl">
+                <div className="flex gap-6">
+                  {firstTwo.map((p) => {
+                    const img = resolveImage(p);
+                    return (
+                      <div
+                        key={p._id}
+                        onClick={() => open(p)}
+                        className="h-48 w-[140px] cursor-pointer overflow-hidden rounded-2xl shadow-md transition duration-500 hover:-translate-y-2 sm:w-[180px] md:w-[220px]"
+                      >
+                        {img ? (
+                          <img src={img} alt={p.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-blue-100">
+                            <Package className="h-8 w-8 text-blue-300" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div
-                  onClick={() => open(PRODUCTS[1])}
-                  className="h-48 w-[140px] cursor-pointer overflow-hidden rounded-2xl shadow-md transition duration-500 hover:translate-y-2 sm:w-[180px] md:w-[220px]"
-                >
-                  <img
-                    src={IMAGES[PRODUCTS[1].key]}
-                    alt={PRODUCTS[1].name}
-                    className="h-full w-full object-cover"
-                  />
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-xs text-gray-400">Click a product to view details</p>
+                  <span className="flex items-center gap-1 text-xs font-medium text-blue-500">
+                    {products.length} items <ArrowRight className="h-3 w-3" />
+                  </span>
                 </div>
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-xs text-gray-400">Click a product to view details</p>
-                <span className="flex items-center gap-1 text-xs font-medium text-blue-500">
-                  8 items <ArrowRight className="h-3 w-3" />
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -235,31 +169,42 @@ export default function Home() {
             </h2>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
-            {categories.map((cat) => (
-              <div
-                key={cat.name}
-                className="group rounded-3xl bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg hover:shadow-blue-200/20"
-              >
-                <div className="mx-auto mb-5 h-28 w-28 overflow-hidden rounded-2xl shadow-md transition duration-300 group-hover:scale-105">
-                  <img
-                    src={IMAGES[cat.imgKey]}
-                    alt={cat.name}
-                    className="h-full w-full object-cover"
-                  />
+            {["Audio", "Charging", "Accessories"].map((cat) => {
+              const count = countByCategory(products, cat);
+              const catProduct = products.find((p) => p.category?.toLowerCase() === cat.toLowerCase());
+              const img = catProduct ? resolveImage(catProduct) : null;
+              return (
+                <div
+                  key={cat}
+                  className="group rounded-3xl bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg hover:shadow-blue-200/20"
+                >
+                  <div className="mx-auto mb-5 h-28 w-28 overflow-hidden rounded-2xl shadow-md transition duration-300 group-hover:scale-105">
+                    {img ? (
+                      <img src={img} alt={cat} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-blue-100">
+                        <Package className="h-8 w-8 text-blue-300" />
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-center text-xl font-bold text-gray-900">{cat}</h3>
+                  <p className="mt-2 text-center text-sm text-gray-400">
+                    {cat === "Audio" && "Headphones, earbuds & speakers for every vibe."}
+                    {cat === "Charging" && "Fast chargers, cables & power banks for all devices."}
+                    {cat === "Accessories" && "Cases, screen protectors & stands to level up."}
+                  </p>
+                  <p className="mt-1 text-center text-xs font-medium text-blue-500">{count} items</p>
+                  <div className="mt-5 text-center">
+                    <a
+                      href={`/auth/category/${cat.toLowerCase()}`}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-600"
+                    >
+                      Browse {cat} <ArrowRight className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
                 </div>
-                <h3 className="text-center text-xl font-bold text-gray-900">{cat.name}</h3>
-                <p className="mt-2 text-center text-sm text-gray-400">{cat.desc}</p>
-                <p className="mt-1 text-center text-xs font-medium text-blue-500">{cat.count}</p>
-                <div className="mt-5 text-center">
-                  <button
-                    onClick={() => setModal("collection")}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-600"
-                  >
-                    Browse {cat.name} <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -275,40 +220,62 @@ export default function Home() {
               Featured Gear
             </h2>
           </div>
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURED.map((item) => (
-              <div
-                key={item.id}
-                className="group relative rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg hover:shadow-blue-200/20"
-              >
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <div className="relative mb-5 flex justify-center">
-                  <div className="h-48 w-48 overflow-hidden rounded-2xl shadow-md transition duration-300 group-hover:scale-105">
-                    <img
-                      src={IMAGES[item.key]}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+          {loading ? (
+            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
+                  <div className="mx-auto mb-5 h-48 w-48 rounded-2xl bg-gray-100 animate-pulse" />
+                  <div className="mx-auto h-4 w-1/2 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="mx-auto mt-3 h-3 w-3/4 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="mx-auto mt-6 h-10 w-32 rounded-full bg-gray-100 animate-pulse" />
                 </div>
-                <div className="relative space-y-3 text-center">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-100/60 px-3 py-1 text-xs font-semibold text-blue-500">
-                    <Star className="h-3 w-3 fill-blue-500 text-blue-500" />
-                    Featured
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
-                  <p className="text-sm leading-relaxed text-gray-400">{item.desc}</p>
-                  <p className="text-2xl font-bold text-blue-500">{item.price}</p>
-                  <button
-                    onClick={() => open(item)}
-                    className="mt-4 rounded-full bg-gray-900 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-500"
+              ))}
+            </div>
+          ) : featured.length === 0 ? (
+            <p className="text-center text-gray-400 py-16">No products yet. Check back soon!</p>
+          ) : (
+            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((item) => {
+                const img = resolveImage(item);
+                return (
+                  <div
+                    key={item._id}
+                    className="group relative rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-lg hover:shadow-blue-200/20"
                   >
-                    Quick View
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <div className="relative mb-5 flex justify-center">
+                      <div className="h-48 w-48 overflow-hidden rounded-2xl shadow-md transition duration-300 group-hover:scale-105">
+                        {img ? (
+                          <img src={img} alt={item.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-blue-50">
+                            <Package className="h-12 w-12 text-blue-300" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="relative space-y-3 text-center">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-100/60 px-3 py-1 text-xs font-semibold text-blue-500">
+                        <Star className="h-3 w-3 fill-blue-500 text-blue-500" />
+                        Featured
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">{item.name}</h3>
+                      <p className="text-sm leading-relaxed text-gray-400 line-clamp-2">
+                        {item.description || "Premium quality gadget accessory designed to enhance your tech experience."}
+                      </p>
+                      <p className="text-2xl font-bold text-blue-500">Rs {item.price}</p>
+                      <button
+                        onClick={() => open(item)}
+                        className="mt-4 rounded-full bg-gray-900 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-500"
+                      >
+                        Quick View
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -331,35 +298,48 @@ export default function Home() {
               View All <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-            {PRODUCTS.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => open(item)}
-                className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-blue-200/20"
-              >
-                <div className="relative mb-4">
-                  <div className="h-36 w-full overflow-hidden rounded-xl sm:h-44">
-                    <img
-                      src={IMAGES[item.key]}
-                      alt={item.name}
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  {item.tag && (
-                    <span className="absolute left-2 top-2 rounded-full bg-blue-500 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-lg">
-                      {item.tag}
-                    </span>
-                  )}
+          {loading ? (
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <div key={i} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                  <div className="mb-4 h-36 w-full rounded-xl bg-gray-100 animate-pulse sm:h-44" />
+                  <div className="h-3 w-1/3 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="mt-2 h-4 w-3/4 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="mt-3 h-5 w-1/4 rounded-full bg-gray-100 animate-pulse" />
                 </div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                  {item.category}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-gray-900 line-clamp-2">{item.name}</p>
-                <p className="mt-1.5 text-base font-bold text-blue-500">{item.price}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              {allItems.map((item) => {
+                const img = resolveImage(item);
+                return (
+                  <div
+                    key={item._id}
+                    onClick={() => open(item)}
+                    className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-blue-200/20"
+                  >
+                    <div className="relative mb-4">
+                      <div className="h-36 w-full overflow-hidden rounded-xl sm:h-44">
+                        {img ? (
+                          <img src={img} alt={item.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-blue-50">
+                            <Package className="h-10 w-10 text-blue-300" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                      {item.category}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 line-clamp-2">{item.name}</p>
+                    <p className="mt-1.5 text-base font-bold text-blue-500">Rs {item.price}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="mt-8 text-center sm:hidden">
             <button
               onClick={() => setModal("collection")}
@@ -421,74 +401,78 @@ export default function Home() {
             <div className="px-8 py-6">
               {modal === "collection" && (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  {PRODUCTS.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => open(item)}
-                      className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-4 text-center transition-all hover:shadow-lg hover:-translate-y-1"
-                    >
-                      {item.tag && (
-                        <span className="inline-block rounded-full bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white">
-                          {item.tag}
-                        </span>
-                      )}
-                      <div className="mx-auto my-3 h-20 w-20 overflow-hidden rounded-xl shadow-md">
-                        <img
-                          src={IMAGES[item.key]}
-                          alt={item.name}
-                          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                        />
+                  {allItems.map((item) => {
+                    const img = resolveImage(item);
+                    return (
+                      <div
+                        key={item._id}
+                        onClick={() => open(item)}
+                        className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-4 text-center transition-all hover:shadow-lg hover:-translate-y-1"
+                      >
+                        <div className="mx-auto my-3 h-20 w-20 overflow-hidden rounded-xl shadow-md">
+                          {img ? (
+                            <img src={img} alt={item.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-blue-50">
+                              <Package className="h-6 w-6 text-blue-300" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="mt-2 text-sm font-semibold text-gray-900">{item.name}</p>
+                        <p className="text-xs text-gray-400">{item.category}</p>
+                        <p className="mt-1 text-sm font-bold text-blue-500">Rs {item.price}</p>
                       </div>
-                      <p className="mt-2 text-sm font-semibold text-gray-900">{item.name}</p>
-                      <p className="text-xs text-gray-400">{item.category}</p>
-                      <p className="mt-1 text-sm font-bold text-blue-500">{item.price}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               {modal === "featured" && (
                 <div className="space-y-4">
-                  {FEATURED.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => open(item)}
-                      className="flex cursor-pointer items-center gap-5 rounded-2xl border border-gray-100 bg-white p-4 transition-all hover:shadow-md"
-                    >
-                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl shadow-md">
-                        <img
-                          src={IMAGES[item.key]}
-                          alt={item.name}
-                          className="h-full w-full object-cover"
-                        />
+                  {featured.map((item) => {
+                    const img = resolveImage(item);
+                    return (
+                      <div
+                        key={item._id}
+                        onClick={() => open(item)}
+                        className="flex cursor-pointer items-center gap-5 rounded-2xl border border-gray-100 bg-white p-4 transition-all hover:shadow-md"
+                      >
+                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl shadow-md">
+                          {img ? (
+                            <img src={img} alt={item.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-blue-50">
+                              <Package className="h-6 w-6 text-blue-300" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{item.name}</p>
+                          <p className="text-sm text-gray-400 line-clamp-1">{item.description}</p>
+                          <p className="mt-1 text-sm font-bold text-blue-500">Rs {item.price}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-400">{item.desc}</p>
-                        <p className="mt-1 text-sm font-bold text-blue-500">{item.price}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               {modal === "product" && selected && (
                 <div className="flex flex-col items-center gap-8 sm:flex-row">
                   <div className="h-56 w-56 shrink-0 overflow-hidden rounded-2xl shadow-xl sm:h-64 sm:w-64">
-                    <img
-                      src={IMAGES[selected.key]}
-                      alt={selected.name}
-                      className="h-full w-full object-cover"
-                    />
+                    {(() => {
+                      const img = resolveImage(selected);
+                      return img ? (
+                        <img src={img} alt={selected.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-blue-50">
+                          <Package className="h-16 w-16 text-blue-300" />
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex-1 space-y-4">
-                    {selected.tag && (
-                      <span className="inline-block rounded-full bg-blue-500 px-3 py-1 text-xs font-bold text-white">
-                        {selected.tag}
-                      </span>
-                    )}
-                    <p className="text-3xl font-bold text-blue-500">{selected.price}</p>
+                    <p className="text-3xl font-bold text-blue-500">Rs {selected.price}</p>
                     <p className="text-gray-500">
-                      {selected.desc ||
-                        "Premium quality gadget accessory designed to enhance your tech experience."}
+                      {selected.description || "Premium quality gadget accessory designed to enhance your tech experience."}
                     </p>
                     <button
                       onClick={() => {

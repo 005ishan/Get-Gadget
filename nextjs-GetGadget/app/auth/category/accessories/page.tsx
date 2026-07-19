@@ -17,7 +17,11 @@ interface Product {
 }
 
 const FEATURES = [
-  { icon: Smartphone, label: "Phone Coolers", desc: "Clip-on semiconductor coolers for gaming phones" },
+  {
+    icon: Smartphone,
+    label: "Phone Coolers",
+    desc: "Clip-on semiconductor coolers for gaming phones",
+  },
   { icon: Watch, label: "Smart Watches", desc: "Premium wearables with health & fitness tracking" },
   { icon: Gamepad2, label: "Gaming Gear", desc: "PS5 accessories, controllers & console add-ons" },
   { icon: Monitor, label: "Desk Setup", desc: "Phone stands, laptop risers & cable organizers" },
@@ -59,9 +63,8 @@ export default function AccessoriesPage() {
   }, []);
 
   useEffect(() => {
-    const user = typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("user") || "null")
-      : null;
+    const user =
+      typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "null") : null;
     if (!user?._id) return;
 
     const fetchFavourites = async () => {
@@ -80,7 +83,10 @@ export default function AccessoriesPage() {
 
   const toggleFavourite = async (productId: string) => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (!user?._id) { toast.error("Please login first"); return; }
+    if (!user?._id) {
+      toast.error("Please login first");
+      return;
+    }
     try {
       await axios.post(`/api/users/${user._id}/favourite`, { productId });
       if (favourites.includes(productId)) {
@@ -99,7 +105,10 @@ export default function AccessoriesPage() {
 
   const addToCart = async (productId: string) => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    if (!user?._id) { toast.error("Please login first"); return; }
+    if (!user?._id) {
+      toast.error("Please login first");
+      return;
+    }
     try {
       await axios.post(`/api/users/${user._id}/cart`, { productId, quantity: 1 });
       toast.success("Added to cart 🛒");
@@ -110,10 +119,13 @@ export default function AccessoriesPage() {
     }
   };
 
+  const getApiUrl = () =>
+    (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
+
   const resolveImage = (product: Product) => {
     if (product.imageUrl) {
       if (product.imageUrl.startsWith("http")) return product.imageUrl;
-      return `${process.env.NEXT_PUBLIC_API_URL}${product.imageUrl}`;
+      return `${getApiUrl()}${product.imageUrl}`;
     }
     return null;
   };
@@ -156,19 +168,8 @@ export default function AccessoriesPage() {
         <div className="absolute -bottom-32 -left-32 h-[350px] w-[350px] rounded-full bg-gradient-to-br from-teal-200/25 to-teal-300/15 blur-[120px]" />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-          <button
-            onClick={() => router.back()}
-            className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-400 transition-colors hover:text-gray-600"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
-
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100/80 border border-emerald-200 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-600 mb-5">
-                <Smartphone className="h-3.5 w-3.5 gadget-icon" />
-                Tech Hub
-              </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight">
                 <span className="text-gray-900">Accessories</span>
                 <br />
@@ -177,7 +178,8 @@ export default function AccessoriesPage() {
                 </span>
               </h1>
               <p className="mt-6 text-lg text-gray-400 max-w-lg leading-relaxed">
-                PS5 gaming accessories, smart watches, phone coolers, laptop stands, and mobile essentials — level up your tech setup with premium gadgets.
+                PS5 gaming accessories, smart watches, phone coolers, laptop stands, and mobile
+                essentials — level up your tech setup with premium gadgets.
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-4">
@@ -202,14 +204,22 @@ export default function AccessoriesPage() {
                   <div className="space-y-4 pt-8">
                     <div className="h-36 w-36 overflow-hidden rounded-2xl shadow-lg border-2 border-emerald-200/60 sm:h-44 sm:w-44">
                       {heroImages[0] ? (
-                        <img src={heroImages[0]} alt={products[0]?.name || "Product"} className="h-full w-full object-cover transition duration-500 hover:scale-110" />
+                        <img
+                          src={heroImages[0]}
+                          alt={products[0]?.name || "Product"}
+                          className="h-full w-full object-cover transition duration-500 hover:scale-110"
+                        />
                       ) : (
                         <div className="h-full w-full bg-emerald-100" />
                       )}
                     </div>
                     <div className="h-28 w-28 overflow-hidden rounded-2xl shadow-lg border-2 border-teal-200/60 sm:h-36 sm:w-36">
                       {heroImages[2] ? (
-                        <img src={heroImages[2]} alt={products[2]?.name || "Product"} className="h-full w-full object-cover transition duration-500 hover:scale-110" />
+                        <img
+                          src={heroImages[2]}
+                          alt={products[2]?.name || "Product"}
+                          className="h-full w-full object-cover transition duration-500 hover:scale-110"
+                        />
                       ) : (
                         <div className="h-full w-full bg-teal-100" />
                       )}
@@ -218,14 +228,22 @@ export default function AccessoriesPage() {
                   <div className="space-y-4">
                     <div className="h-28 w-28 overflow-hidden rounded-2xl shadow-lg border-2 border-emerald-200/60 sm:h-36 sm:w-36">
                       {heroImages[1] ? (
-                        <img src={heroImages[1]} alt={products[1]?.name || "Product"} className="h-full w-full object-cover transition duration-500 hover:scale-110" />
+                        <img
+                          src={heroImages[1]}
+                          alt={products[1]?.name || "Product"}
+                          className="h-full w-full object-cover transition duration-500 hover:scale-110"
+                        />
                       ) : (
                         <div className="h-full w-full bg-emerald-100" />
                       )}
                     </div>
                     <div className="h-36 w-36 overflow-hidden rounded-2xl shadow-lg border-2 border-teal-200/60 sm:h-44 sm:w-44">
                       {heroImages[3] ? (
-                        <img src={heroImages[3]} alt={products[3]?.name || "Product"} className="h-full w-full object-cover transition duration-500 hover:scale-110" />
+                        <img
+                          src={heroImages[3]}
+                          alt={products[3]?.name || "Product"}
+                          className="h-full w-full object-cover transition duration-500 hover:scale-110"
+                        />
                       ) : (
                         <div className="h-full w-full bg-teal-100" />
                       )}
@@ -259,7 +277,9 @@ export default function AccessoriesPage() {
 
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
@@ -272,7 +292,11 @@ export default function AccessoriesPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {products.map((product, index) => {
-              const imgSrc = resolveImage(product) || (products.length > 1 ? resolveImage(products[(index + 1) % products.length]) : null);
+              const imgSrc =
+                resolveImage(product) ||
+                (products.length > 1
+                  ? resolveImage(products[(index + 1) % products.length])
+                  : null);
               const isFav = favourites.includes(product._id);
 
               return (
@@ -284,7 +308,9 @@ export default function AccessoriesPage() {
                     onClick={() => toggleFavourite(product._id)}
                     className="absolute top-3 right-3 z-10 cursor-pointer"
                   >
-                    <Heart className={`w-6 h-6 ${isFav ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-400"}`} />
+                    <Heart
+                      className={`w-6 h-6 ${isFav ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-400"}`}
+                    />
                   </button>
 
                   <div className="relative mb-4">
