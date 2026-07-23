@@ -116,7 +116,7 @@ export class AuthService {
     };
 
     const token = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "15d",
+      expiresIn: "24h",
     });
 
     const { password, ...safeUser } = user.toObject ? user.toObject() : user;
@@ -164,7 +164,7 @@ export class AuthService {
     };
 
     const token = jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "15d",
+      expiresIn: "24h",
     });
 
     const { password, ...safeUser } = user.toObject ? user.toObject() : user;

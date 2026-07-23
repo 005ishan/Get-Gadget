@@ -110,6 +110,11 @@ app.get("/api", (req: Request, res: Response) => {
   });
 });
 
+// 404 catch-all — prevents info leakage on unknown routes
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
+
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof HttpError) {
     return res.status(err.statusCode).json({

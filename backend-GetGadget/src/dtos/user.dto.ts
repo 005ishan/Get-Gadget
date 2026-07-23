@@ -20,7 +20,7 @@ export type createUserDTO = z.infer<typeof createUserDTO>;
 
 export const loginUserDTO = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
 export type loginUserDTO = z.infer<typeof loginUserDTO>;

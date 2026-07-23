@@ -16,7 +16,13 @@ export type FavouriteItemType = z.infer<typeof favouriteItemSchema>;
 
 export const userSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/[A-Z]/, { message: "Must contain an uppercase letter" })
+    .regex(/[a-z]/, { message: "Must contain a lowercase letter" })
+    .regex(/[0-9]/, { message: "Must contain a number" })
+    .regex(/[^A-Za-z0-9]/, { message: "Must contain a special character" }),
   role: z.enum(["user", "admin"]).default("user"),
   passwordChangedAt: z.date().optional(),
   name: z.string().optional().default(""),

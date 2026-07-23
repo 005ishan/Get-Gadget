@@ -9,12 +9,11 @@ export const MONGODB_URI: string =
     ? process.env.MONGODB_URI
     : "mongodb://localhost:27017/getgadget";
 
-export const JWT_SECRET: string = process.env.JWT_SECRET || "default";
-
-// Fail fast in production if JWT_SECRET is still default
-if (JWT_SECRET === "default" && process.env.NODE_ENV === "production") {
-  console.error("FATAL: JWT_SECRET must be set in production!");
+const rawSecret = process.env.JWT_SECRET;
+if (!rawSecret) {
+  console.error("FATAL: JWT_SECRET environment variable is required");
   process.exit(1);
 }
+export const JWT_SECRET: string = rawSecret;
 
 export const FRONTEND_URL: string = process.env.FRONTEND_URL || "http://localhost:3000";
